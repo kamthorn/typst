@@ -294,3 +294,18 @@ int main() {
 #space;Foo Bar Buzz
 
 #space;Foo Bar#sym.zws;Buzz
+
+--- justify-thai-tracking paged ---
+// Test that justified Thai text is stretched between letters, not at the
+// spaces between clauses, and that leading vowels stay attached.
+#set page(width: 9cm, margin: 1cm)
+#set text(lang: "th", font: "Noto Sans Thai")
+#set par(justify: true)
+การจัดวางตัวอักษรภาษาไทยให้ชิดขอบทั้งสองด้านต้องไม่ยืดช่องว่างระหว่างคำ เพราะผู้อ่านจะรู้สึกเหมือนเป็นการขึ้นประโยคใหม่ ควรกระจายระยะห่างระหว่างตัวอักษรแทน
+
+--- justify-thai-mixed-space paged ---
+// A space between Thai and Latin text must not stretch either.
+#set page(width: 6cm, margin: 0.5cm)
+#set text(lang: "th", font: ("Libertinus Serif", "Noto Sans Thai"))
+#set par(justify: true)
+ภาษาไทยและ Typst ทำงานร่วมกัน ได้อย่างเหมาะสมในบรรทัดที่ถูกจัดชิดขอบ
