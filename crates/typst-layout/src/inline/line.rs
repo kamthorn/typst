@@ -363,14 +363,15 @@ fn adjust_cj_at_line_boundaries(p: &Preparation, range: Range, items: &mut Items
 /// space after a glyph due to glyph-level justification.
 fn adjust_glyph_stretch_at_line_end(p: &Preparation, items: &mut Items) {
     let glyph_limits = &p.config.justification_limits.tracking();
-    if glyph_limits.min.is_zero() && glyph_limits.max.is_zero() {
-        return;
-    }
+    let no_limits = glyph_limits.min.is_zero() && glyph_limits.max.is_zero();
 
     // This is not perfect (ignores clusters and is not particularly fast), but
     // it is good enough for now. The adjustability handling in general needs a
     // cleanup.
     let Some(shaped) = items.trailing_text_mut() else { return };
+    if no_limits && !shaped.glyphs.last().is_some_and(|g| g.is_thai_stretch_point()) {
+        return;
+    }
     let Some(glyph) = shaped.glyphs.to_mut().last_mut() else { return };
     glyph.adjustability = Adjustability::default();
 }

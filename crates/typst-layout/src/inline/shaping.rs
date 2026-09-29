@@ -278,11 +278,12 @@ impl ShapedGlyph {
                 shrinkability: (width / 4.0, width / 4.0),
             }
         } else if stretchable {
+            let mut max = Em::from_length(limits.tracking().max, font_size);
+            if self.is_thai_stretch_point() {
+                max = max.max(THAI_TRACKING_STRETCH);
+            }
             Adjustability {
-                stretchability: (
-                    Em::zero(),
-                    Em::from_length(limits.tracking().max, font_size).max(Em::zero()),
-                ),
+                stretchability: (Em::zero(), max.max(Em::zero())),
                 shrinkability: (
                     Em::zero(),
                     limited(Em::from_length(-limits.tracking().min, font_size)),
@@ -291,6 +292,13 @@ impl ShapedGlyph {
         } else {
             Adjustability::default()
         }
+    }
+
+    /// Whether extra space may be inserted after this glyph when justifying
+    /// Thai text. Leading vowels (U+0E40..=U+0E44) must stay attached to the
+    /// consonant that follows them.
+    pub fn is_thai_stretch_point(&self) -> bool {
+        self.script == Script::Thai && !matches!(self.c, '\u{0E40}'..='\u{0E44}')
     }
 
     /// The stretchability of the character.
@@ -1294,6 +1302,12 @@ fn track_and_space(ctx: &mut ShapingContext) {
     }
 }
 
+/// Default tracking stretch for Thai letters when justifying.
+///
+/// Thai has no inter-word spaces, so readers perceive a stretched space as a
+/// sentence break. Extra width is therefore distributed between letters.
+const THAI_TRACKING_STRETCH: Em = Em::new(0.05);
+
 /// Calculate stretchability and shrinkability of each glyph,
 /// and CJK punctuation adjustments according to Chinese Layout Requirements.
 fn calculate_adjustability(ctx: &mut ShapingContext, lang: Lang, region: Option<Region>) {
@@ -1310,6 +1324,17 @@ fn calculate_adjustability(ctx: &mut ShapingContext, lang: Lang, region: Option<
 
         glyph.adjustability =
             glyph.base_adjustability(style, &limits, font_size, stretchable);
+    }
+
+    // A space next to Thai text separates clauses, so it must not stretch.
+    let thai: Vec<bool> = ctx.glyphs.iter().map(|g| g.script == Script::Thai).collect();
+    for (i, glyph) in ctx.glyphs.iter_mut().enumerate() {
+        if glyph.is_space()
+            && (i.checked_sub(1).is_some_and(|j| thai[j])
+                || thai.get(i + 1).copied().unwrap_or(false))
+        {
+            glyph.adjustability.stretchability = (Em::zero(), Em::zero());
+        }
     }
 
     let mut glyphs = ctx.glyphs.iter_mut().peekable();
