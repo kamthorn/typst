@@ -309,3 +309,10 @@ int main() {
 #set text(lang: "th", font: ("Libertinus Serif", "Noto Sans Thai"))
 #set par(justify: true)
 ภาษาไทยและ Typst ทำงานร่วมกัน ได้อย่างเหมาะสมในบรรทัดที่ถูกจัดชิดขอบ
+
+--- justify-thai-tracking-custom paged ---
+// Explicit tracking limits override the Thai default. Here they disable it.
+#set page(width: 9cm, margin: 1cm)
+#set text(lang: "th", font: "Noto Sans Thai")
+#set par(justify: true, justification-limits: (tracking: (min: 0em, max: 0em)))
+การจัดวางตัวอักษรภาษาไทยให้ชิดขอบทั้งสองด้านต้องไม่ยืดช่องว่างระหว่างคำ เพราะผู้อ่านจะรู้สึกเหมือนเป็นการขึ้นประโยคใหม่ ควรกระจายระยะห่างระหว่างตัวอักษรแทน

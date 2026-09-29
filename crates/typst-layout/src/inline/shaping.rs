@@ -278,10 +278,10 @@ impl ShapedGlyph {
                 shrinkability: (width / 4.0, width / 4.0),
             }
         } else if stretchable {
-            let mut max = Em::from_length(limits.tracking().max, font_size);
-            if self.is_thai_stretch_point() {
-                max = max.max(THAI_TRACKING_STRETCH);
-            }
+            let max = match limits.custom_tracking() {
+                None if self.is_thai_stretch_point() => THAI_TRACKING_STRETCH,
+                _ => Em::from_length(limits.tracking().max, font_size),
+            };
             Adjustability {
                 stretchability: (Em::zero(), max.max(Em::zero())),
                 shrinkability: (

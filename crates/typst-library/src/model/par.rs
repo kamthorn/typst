@@ -306,6 +306,12 @@ pub struct ParElem {
     /// letters. Using character-level justification would lead to jagged
     /// connections.
     ///
+    /// Thai has no spaces between words, and readers perceive a stretched
+    /// space as a sentence break. Typst therefore never stretches spaces next
+    /// to Thai text and, by default, stretches Thai letters by up to `{0.05em}`
+    /// instead. Explicitly setting `tracking` overrides this default for Thai
+    /// as well, so `{tracking: (min: 0em, max: 0em)}` disables it.
+    ///
     /// #example(
     ///   title: "Character-level justification",
     ///   ```
@@ -450,6 +456,11 @@ pub struct JustificationLimits {
 }
 
 impl JustificationLimits {
+    /// Access the tracking limits only if they were set explicitly.
+    pub fn custom_tracking(&self) -> Option<&Limits<Length>> {
+        self.tracking.as_ref()
+    }
+
     /// Access the spacing limits.
     pub fn spacing(&self) -> &Limits<Rel> {
         self.spacing.as_ref().unwrap_or(&Limits::SPACING_DEFAULT)
@@ -502,7 +513,7 @@ impl Default for JustificationLimits {
     fn default() -> Self {
         Self {
             spacing: Some(Limits::SPACING_DEFAULT),
-            tracking: Some(Limits::TRACKING_DEFAULT),
+            tracking: None,
         }
     }
 }
